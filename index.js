@@ -1,5 +1,5 @@
 import { connectToDatabase } from "./dbConnect.js";
-import "dotenv/config";
+// import "dotenv/config";
 import { Client, Intents } from "discord.js";
 const client = new Client({
   intents: [
