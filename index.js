@@ -8,10 +8,15 @@ const client = new Client({
     Intents.FLAGS.GUILD_VOICE_STATES,
   ],
 });
+let db;
 // const { db } = await connectToDatabase();
 
 const initialConnection = async () => {
-  await connectToDatabase();
+  await connectToDatabase().then((client) => {
+    // console.log(client.db);
+    db = client.db;
+  });
+  // console.log(db);
 };
 
 let channelIDinfo = undefined;
@@ -72,7 +77,7 @@ client.on("messageCreate", async (ctx) => {
 
 const idchecker = async (number) => {
   let randomnumber = number;
-  const { db } = await connectToDatabase();
+
   const guild = await db.collection("discord").findOne({
     serverid: `${number}`,
   });
@@ -85,7 +90,6 @@ const idchecker = async (number) => {
 };
 
 const updatePlayingNow = async (ctx, data) => {
-  const { db } = await connectToDatabase();
   const guild = await db.collection("discord").findOne({
     serverdiscordid: ctx.guild.id,
   });
@@ -102,7 +106,6 @@ const updatePlayingNow = async (ctx, data) => {
 };
 
 const updateGuild = async (ctx, data) => {
-  const { db } = await connectToDatabase();
   const guild = await db.collection("discord").findOne({
     serverdiscordid: ctx.guild.id,
   });
@@ -118,7 +121,7 @@ const updateGuild = async (ctx, data) => {
       );
     return guild;
   } else {
-    console.log("error, updating");
+    // console.log("error, updating");
     await initialDataChecker(ctx).then((guild) => {
       guild.channels[0] = data;
       db.collection("discord").updateOne(
@@ -131,7 +134,6 @@ const updateGuild = async (ctx, data) => {
 };
 
 const initialDataChecker = async (ctx) => {
-  const { db } = await connectToDatabase();
   const guild = await db.collection("discord").findOne({
     serverdiscordid: ctx.guild.id,
   });
@@ -176,7 +178,7 @@ client.on("messageCreate", (message) => {
           };
 
           updatePlayingNow(message, musicData).then((guild) => {
-            console.log(guild);
+            // console.log(guild);
           });
         }
       } catch (err) {
@@ -186,7 +188,7 @@ client.on("messageCreate", (message) => {
   }
 });
 client.on("voiceStateUpdate", (oldMember, newMember) => {
-  console.log("Iniciando serviço");
+  // console.log("Iniciando serviço");
   // Get the channel name and list all users in it
   const channelIDJoin = newMember.channelId;
   const channelIDLeave = oldMember.channelId;
@@ -204,7 +206,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
   }
   let dataToSend = {};
   initialDataChecker(newMember).then((guild) => {
-    console.log("Geolocalizando");
+    // console.log("Geolocalizando");
     // console.log(guild.channels.length);
     if (guild.channels.length == 1) {
       channelIDinfo = guild.channels[0].channelId;
@@ -221,7 +223,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
             };
             // console.log(dataToSend);
             updateGuild(newMember, dataToSend).then((guild) => {
-              console.log("Geolocalizado! 🗺️");
+              // console.log("Geolocalizado! 🗺️");
             });
           }
         });
@@ -238,14 +240,14 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
                 .includes("547905866255433758"),
             };
             updateGuild(newMember, dataToSend).then((guild) => {
-              console.log("Geolocalizado! 🗺️");
+              // console.log("Geolocalizado! 🗺️");
             });
             // console.log(dataToSend);
           }
         });
       }
     } else {
-      console.log("Não foi possivel geolocalizar");
+      // console.log("Não foi possivel geolocalizar");
     }
   });
 });
