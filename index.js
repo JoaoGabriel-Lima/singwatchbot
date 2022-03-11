@@ -15,6 +15,9 @@ client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
   const clientdb = await clientPromise;
   db = clientdb.db(process.env.MONGO_DB);
+
+  db.collection("discord").updateMany({}, { $set: { "channels.0.users": [] } });
+  // update every channel array in all documents in the database
 });
 
 //verify if someone sent a message starting with the prefix sw! and if the command is named set, if so, it will verify if the user has sent a text after the command
@@ -139,6 +142,8 @@ const initialDataChecker = async (ctx) => {
       const newGuild = {
         serverid: `${result}`,
         serverdiscordid: ctx.guild.id,
+        servername: ctx.guild.name,
+        servericon: `https://cdn.discordapp.com/icons/${ctx.guild.id}/${ctx.guild.icon}.png`,
         channels: [],
         musicPlaying: {},
       };
