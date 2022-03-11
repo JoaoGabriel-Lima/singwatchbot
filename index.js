@@ -1,4 +1,4 @@
-import { connectToDatabase } from "./dbConnect.js";
+import clientPromise from "./lib/mongodb.js";
 // import "dotenv/config";
 import { Client, Intents } from "discord.js";
 const client = new Client({
@@ -9,20 +9,12 @@ const client = new Client({
   ],
 });
 let db;
-// const { db } = await connectToDatabase();
-
-const initialConnection = async () => {
-  await connectToDatabase().then((client) => {
-    // console.log(client.db);
-    db = client.db;
-  });
-  // console.log(db);
-};
 
 let channelIDinfo = undefined;
-client.on("ready", () => {
+client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
-  initialConnection();
+  const clientdb = await clientPromise;
+  db = clientdb.db(process.env.MONGO_DB);
 });
 
 //verify if someone sent a message starting with the prefix sw! and if the command is named set, if so, it will verify if the user has sent a text after the command
