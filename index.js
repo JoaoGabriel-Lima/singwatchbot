@@ -1,6 +1,6 @@
-import clientPromise from "./lib/mongodb.js";
+const { main } = require("./lib/mongodb.js");
 // import "dotenv/config";
-import { Client, Intents } from "discord.js";
+const { Client, Intents } = require("discord.js");
 const client = new Client({
   intents: [
     Intents.FLAGS.GUILDS,
@@ -13,8 +13,9 @@ let db;
 let channelIDinfo = undefined;
 client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
-  const clientdb = await clientPromise;
-  db = clientdb.db(process.env.MONGO_DB);
+  db = await main();
+  // console.log(clientdb);
+  // db = clientdb.db(process.env.MONGO_DB);
 
   db.collection("discord").updateMany({}, { $set: { "channels.0.users": [] } });
   // update every channel array in all documents in the database
@@ -185,7 +186,6 @@ client.on("messageCreate", (message) => {
   }
 });
 client.on("voiceStateUpdate", (oldMember, newMember) => {
-  // console.log("Iniciando serviço");
   // Get the channel name and list all users in it
   const channelIDJoin = newMember.channelId;
   const channelIDLeave = oldMember.channelId;
@@ -196,10 +196,12 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
     oldMember.selfDeaf != newMember.selfDeaf ||
     oldMember.selfVideo != newMember.selfVideo ||
     oldMember.serverMute != newMember.serverMute ||
-    oldMember.serverDeaf != newMember.serverDeaf
+    oldMember.serverDeaf != newMember.serverDeaf ||
+    oldMember.streaming != newMember.streaming
   ) {
     return;
   } else {
+    console.log("State Update");
   }
   let dataToSend = {};
   initialDataChecker(newMember).then((guild) => {
@@ -220,7 +222,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
             };
             // console.log(dataToSend);
             updateGuild(newMember, dataToSend).then((guild) => {
-              // console.log("Geolocalizado! 🗺️");
+              console.log("Geolocalizado! 🗺️");
             });
           }
         });
