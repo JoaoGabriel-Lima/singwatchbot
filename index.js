@@ -85,12 +85,12 @@ const idchecker = async (number) => {
   }
 };
 
-const updatePlayingNow = async (ctx, data) => {
+const updatePlayingNow = async (ctx, data, date) => {
   const guild = await db.collection("discord").findOne({
     serverdiscordid: ctx.guild.id,
   });
   if (guild) {
-    guild.musicPlaying = { musicData: data, updateAt: new Date() };
+    guild.musicPlaying = { musicData: data, updateAt: new Date(date) };
     await db
       .collection("discord")
       .updateOne(
@@ -174,10 +174,44 @@ client.on("messageCreate", (message) => {
             author: artist_name,
             music: song_name,
           };
-
-          updatePlayingNow(message, musicData).then((guild) => {
+          const date = message.createdAt;
+          updatePlayingNow(message, musicData, date).then((guild) => {
             // console.log(guild);
           });
+        }
+      } catch (err) {
+        return;
+      }
+    });
+  }
+});
+
+client.on("messageCreate", (message) => {
+  let musicData = {};
+  if (message.author.id === "411916947773587456") {
+    initialDataChecker(message).then((guild) => {
+      try {
+        message.embeds[0].description;
+        const embed = message.embeds[0];
+        const embed_title = embed.title;
+        const embed_description = embed.description;
+
+        if (embed_title == null) {
+          if (embed_description.startsWith("Started playing")) {
+            // check if embed_description has the word "by" in it
+            if (embed_description.includes("by")) {
+              const music = embed_description.split("[")[1].split("]")[0];
+              const song_name = music.split(" by ")[0];
+              const artist_name = music.split(" by ")[1];
+              musicData = {
+                author: artist_name,
+                music: song_name,
+              };
+              // get the menssage date
+              const date = message.createdAt;
+              updatePlayingNow(message, musicData, date).then((guild) => {});
+            }
+          }
         }
       } catch (err) {
         return;
